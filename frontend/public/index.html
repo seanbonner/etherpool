@@ -6,59 +6,128 @@
     <title>EtherPool</title>
     <meta
       name="description"
-      content="EtherPool creates simple ETH payment pools for a fixed total due by a fixed due date."
+      content="Create a temporary ETH address for combining payments toward one fixed total."
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main>
       <header>
-        <p>etherpool.app</p>
+        <p class="brand">etherpool.app</p>
         <h1>EtherPool</h1>
-        <p>
-          One ETH address per payment pool. If the total due is reached by the due date,
-          the recipient gets paid; otherwise senders can claim their ETH back.
+        <p class="lede">
+          Create a temporary ETH address for combining payments toward one fixed total.
         </p>
       </header>
 
-      <section aria-labelledby="flow-title">
-        <h2 id="flow-title">Flow</h2>
+      <section id="setup-error" class="banner banner-error" hidden>
+        <h2>Setup required</h2>
+        <p id="setup-error-message">Factory address is not configured.</p>
+      </section>
+
+      <section id="chain-warning" class="banner banner-warn" hidden>
+        <p id="chain-warning-message"></p>
+      </section>
+
+      <section id="status-message" class="banner" hidden>
+        <p id="status-message-text"></p>
+      </section>
+
+      <section class="wallet-bar">
+        <div class="wallet-meta">
+          <div>
+            <span class="muted">Wallet:</span>
+            <span id="wallet-address">Not connected</span>
+          </div>
+          <div>
+            <span class="muted">Chain:</span>
+            <span id="wallet-chain">—</span>
+            <span class="muted"> · expected </span>
+            <span id="expected-chain">—</span>
+          </div>
+          <div>
+            <span class="muted">Factory:</span>
+            <span id="factory-display">—</span>
+          </div>
+        </div>
+        <div class="wallet-actions">
+          <button id="connect-btn" type="button">Connect Wallet</button>
+          <button id="refresh-btn" type="button">Refresh</button>
+        </div>
+      </section>
+
+      <section id="create-section" aria-labelledby="create-title">
+        <h2 id="create-title">Create Pool</h2>
+        <form id="create-form" novalidate>
+          <label>
+            Total Due (ETH)
+            <input
+              name="totalDue"
+              type="number"
+              step="any"
+              min="0"
+              inputmode="decimal"
+              placeholder="0.5"
+              required
+            />
+          </label>
+          <label>
+            Due Date / Time (local)
+            <input name="dueDate" type="datetime-local" required />
+          </label>
+          <label>
+            Recipient Address
+            <input
+              name="recipient"
+              type="text"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              placeholder="0x…"
+              required
+            />
+          </label>
+          <p class="warn">
+            Recipient must be a regular wallet (EOA). Safes, multisigs, and smart contract
+            wallets are not supported and will be rejected on-chain.
+          </p>
+          <div class="form-actions">
+            <button type="submit" id="create-submit">Create Pool</button>
+            <span id="create-status" class="muted"></span>
+          </div>
+        </form>
+        <div id="create-result" class="result" hidden></div>
+      </section>
+
+      <section id="pools-section" aria-labelledby="pools-title">
+        <div class="section-head">
+          <h2 id="pools-title">Pools</h2>
+          <span id="pools-count" class="muted"></span>
+        </div>
+        <div id="pools-empty" class="muted">No pools yet.</div>
+        <div id="pool-groups"></div>
+      </section>
+
+      <section id="detail-section" aria-labelledby="detail-title" hidden>
+        <div class="section-head">
+          <h2 id="detail-title">Pool Detail</h2>
+          <button id="detail-close" type="button" class="link-button">Close</button>
+        </div>
+        <div id="detail-body"></div>
+      </section>
+
+      <section aria-labelledby="notes-title">
+        <h2 id="notes-title">How It Works</h2>
         <ol>
           <li>Create a pool with a total due, due date, and EOA recipient.</li>
           <li>Send ETH directly to the pool address.</li>
-          <li>Call complete when funded.</li>
-          <li>Claim failed-pool contributions or excess payments from the sending address.</li>
+          <li>When the total is reached, anyone can call <em>Complete</em> to pay the recipient.</li>
+          <li>If the due date passes underfunded, contributors can claim their ETH back.</li>
+          <li>Any overpayment is held as <em>excess</em> for the sending address to claim.</li>
         </ol>
-      </section>
-
-      <section aria-labelledby="abi-title">
-        <h2 id="abi-title">Contract Data</h2>
-        <dl>
-          <div>
-            <dt>EtherPool ABI</dt>
-            <dd id="pool-abi-status">Loading</dd>
-          </div>
-          <div>
-            <dt>Factory ABI</dt>
-            <dd id="factory-abi-status">Loading</dd>
-          </div>
-          <div>
-            <dt>Factory Address</dt>
-            <dd id="factory-address-status">Not configured</dd>
-          </div>
-          <div>
-            <dt>Chain</dt>
-            <dd id="chain-status">Not configured</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section aria-labelledby="notice-title">
-        <h2 id="notice-title">Important</h2>
-        <p>
-          Do not send from exchanges or custodial wallets. Claims are keyed to the
-          sending address. V1 recipients must be EOAs, not contracts, Safes,
-          multisigs, or smart wallets. EtherPool has no admin controls, dev fee, or sweep.
+        <p class="warn">
+          Do not send from an exchange. Use a wallet you control, or you may not be able
+          to claim refunds or excess ETH.
         </p>
       </section>
     </main>

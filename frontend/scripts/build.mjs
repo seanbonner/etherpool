@@ -13,11 +13,17 @@ const etherscanBaseUrls = {
   11155111: "https://sepolia.etherscan.io",
   17000: "https://holesky.etherscan.io"
 };
+const defaultRpcUrls = {
+  1: "https://cloudflare-eth.com",
+  11155111: "https://ethereum-sepolia-rpc.publicnode.com",
+  17000: "https://ethereum-holesky-rpc.publicnode.com"
+};
 
 const config = {
   factoryAddress: process.env.FRONTEND_FACTORY_ADDRESS || "",
   chainId,
-  etherscanBaseUrl: process.env.FRONTEND_ETHERSCAN_BASE_URL || etherscanBaseUrls[chainId] || "https://etherscan.io"
+  etherscanBaseUrl: process.env.FRONTEND_ETHERSCAN_BASE_URL || etherscanBaseUrls[chainId] || "https://etherscan.io",
+  rpcUrl: process.env.FRONTEND_RPC_URL || defaultRpcUrls[chainId] || ""
 };
 
 const artifacts = [

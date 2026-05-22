@@ -7,7 +7,8 @@ import {
   parseEther,
   isAddress,
   getAddress,
-  getContract
+  getContract,
+  decodeEventLog
 } from "https://esm.sh/viem@2.21.55";
 import {
   mainnet,
@@ -123,6 +124,10 @@ async function init() {
   }
   if (!isAddress(config.factoryAddress)) {
     showError("Configured factoryAddress is not a valid EVM address.");
+    return;
+  }
+  if (config.chainId && !expectedChain) {
+    showError("Unsupported chain configured. Add this chain to the frontend chain list.");
     return;
   }
 
@@ -659,6 +664,24 @@ async function handleCreate(event) {
   }
   const recipient = getAddress(recipientStr);
 
+  if (state.publicClient) {
+    try {
+      const code = await state.publicClient.getBytecode({ address: recipient });
+      if (code && code !== "0x") {
+        setStatus(
+          "Recipient appears to be a contract address. EtherPool v1 only supports normal EOA wallets.",
+          "error"
+        );
+        return;
+      }
+    } catch (err) {
+      setStatus(
+        `Could not verify recipient is an EOA. ${describeError(err)} Proceeding will still revert on-chain if recipient is a contract.`,
+        "warn"
+      );
+    }
+  }
+
   const submitBtn = el("create-submit");
   submitBtn.disabled = true;
   submitBtn.textContent = "Creating…";
@@ -676,14 +699,23 @@ async function handleCreate(event) {
     const receipt = await state.publicClient.waitForTransactionReceipt({ hash });
 
     let newPoolAddress = null;
-    const createdLog = receipt.logs.find(
-      (log) => log.address.toLowerCase() === config.factoryAddress.toLowerCase() && log.topics?.length >= 2
-    );
-    if (createdLog) {
-      newPoolAddress = `0x${createdLog.topics[1].slice(-40)}`;
+    const factoryAddressLower = config.factoryAddress.toLowerCase();
+    for (const log of receipt.logs) {
+      if (log.address.toLowerCase() !== factoryAddressLower) continue;
       try {
-        newPoolAddress = getAddress(newPoolAddress);
-      } catch {}
+        const decoded = decodeEventLog({
+          abi: state.factoryAbi,
+          data: log.data,
+          topics: log.topics
+        });
+        if (decoded.eventName === "PoolCreated" && decoded.args?.pool) {
+          newPoolAddress = getAddress(decoded.args.pool);
+          break;
+        }
+      } catch {
+        // Skip logs that don't match the factory ABI; refreshPools will still
+        // surface the new pool even if we cannot decode the event here.
+      }
     }
 
     const result = el("create-result");

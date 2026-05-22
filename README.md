@@ -36,6 +36,19 @@ Frontend config is static. `npm run build` writes `frontend/dist/config.js` from
 - `FRONTEND_FACTORY_ADDRESS`
 - `FRONTEND_CHAIN_ID`
 - `FRONTEND_ETHERSCAN_BASE_URL` optional; if omitted, the build script uses a known Etherscan URL for mainnet, Sepolia, or Holesky.
+- `FRONTEND_RPC_URL` optional; if omitted, the build script uses a public RPC for mainnet, Sepolia, or Holesky. This is read-only and lets the frontend display pools without a wallet connected.
+
+### Runtime dependencies
+
+The current static frontend loads [viem](https://viem.sh) at runtime from
+`https://esm.sh/viem@2.21.55`. This keeps the build to one `npm run build` step
+that just copies files and writes `config.js` — no bundler, no `node_modules`,
+deploys cleanly to Cloudflare Pages.
+
+TODO before a mainnet public launch: bundle/vendor viem (and any future deps)
+locally so the production frontend has no third-party CDN dependency in the
+critical path. A user-facing mainnet deployment should not depend on esm.sh
+being reachable or untampered.
 
 Build the contracts first, then build the frontend:
 

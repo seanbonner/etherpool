@@ -413,4 +413,118 @@ contract EtherPoolTest is Test {
         assertEq(pool.excessBalances(alice), 1 ether);
         assertEq(pool.totalContributed(), 0);
     }
+
+    function testNewPoolStatusIsActive() public view {
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Active));
+        assertFalse(pool.isFunded());
+        assertFalse(pool.isFailed());
+        assertFalse(pool.canComplete());
+    }
+
+    function testUnderfundedBeforeDueDateIsActive() public {
+        vm.prank(alice);
+        pool.contribute{value: 1 ether}();
+
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Active));
+        assertFalse(pool.isFunded());
+        assertFalse(pool.isFailed());
+        assertFalse(pool.canComplete());
+    }
+
+    function testFundedButNotCompletedStatusIsFunded() public {
+        vm.prank(alice);
+        pool.contribute{value: 3 ether}();
+
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Funded));
+        assertTrue(pool.isFunded());
+        assertFalse(pool.isFailed());
+        assertTrue(pool.canComplete());
+    }
+
+    function testFundedStatusHoldsAfterDueDateUntilCompleted() public {
+        vm.prank(alice);
+        pool.contribute{value: 3 ether}();
+
+        vm.warp(dueDate + 1);
+
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Funded));
+        assertTrue(pool.isFunded());
+        assertFalse(pool.isFailed());
+        assertTrue(pool.canComplete());
+    }
+
+    function testCompletedStatusIsCompleted() public {
+        vm.prank(alice);
+        pool.contribute{value: 3 ether}();
+
+        pool.complete();
+
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Completed));
+        assertFalse(pool.isFunded());
+        assertFalse(pool.isFailed());
+        assertFalse(pool.canComplete());
+    }
+
+    function testUnderfundedAfterDueDateStatusIsFailed() public {
+        vm.prank(alice);
+        pool.contribute{value: 1 ether}();
+
+        vm.warp(dueDate + 1);
+
+        assertEq(uint256(pool.status()), uint256(EtherPool.PoolStatus.Failed));
+        assertFalse(pool.isFunded());
+        assertTrue(pool.isFailed());
+        assertFalse(pool.canComplete());
+    }
+
+    function testIsFundedTrueOnlyWhenFundedAndNotCompleted() public {
+        assertFalse(pool.isFunded());
+
+        vm.prank(alice);
+        pool.contribute{value: 2 ether}();
+        assertFalse(pool.isFunded());
+
+        vm.prank(bob);
+        pool.contribute{value: 1 ether}();
+        assertTrue(pool.isFunded());
+
+        pool.complete();
+        assertFalse(pool.isFunded());
+    }
+
+    function testIsFailedTrueOnlyAfterDueDateWhenUnderfunded() public {
+        vm.prank(alice);
+        pool.contribute{value: 1 ether}();
+
+        assertFalse(pool.isFailed());
+
+        vm.warp(dueDate);
+        assertFalse(pool.isFailed());
+
+        vm.warp(dueDate + 1);
+        assertTrue(pool.isFailed());
+    }
+
+    function testCanCompleteTrueOnlyWhenFundedAndNotCompleted() public {
+        assertFalse(pool.canComplete());
+
+        vm.prank(alice);
+        pool.contribute{value: 1 ether}();
+        assertFalse(pool.canComplete());
+
+        vm.prank(bob);
+        pool.contribute{value: 2 ether}();
+        assertTrue(pool.canComplete());
+    }
+
+    function testCanCompleteFalseAfterCompleted() public {
+        vm.prank(alice);
+        pool.contribute{value: 3 ether}();
+
+        assertTrue(pool.canComplete());
+
+        pool.complete();
+
+        assertFalse(pool.canComplete());
+    }
 }

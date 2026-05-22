@@ -8,6 +8,13 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// multisigs, and Safes are unsupported to reduce payout failure risk when
 /// complete() sends ETH to the immutable recipient.
 contract EtherPool is ReentrancyGuard {
+    enum PoolStatus {
+        Active,
+        Funded,
+        Completed,
+        Failed
+    }
+
     uint256 public immutable totalDue;
     uint256 public immutable dueDate;
     address payable public immutable recipient;
@@ -143,5 +150,24 @@ contract EtherPool is ReentrancyGuard {
 
     function claimableExcess(address contributor) external view returns (uint256) {
         return excessBalances[contributor];
+    }
+
+    function status() external view returns (PoolStatus) {
+        if (completed) return PoolStatus.Completed;
+        if (totalContributed >= totalDue) return PoolStatus.Funded;
+        if (block.timestamp > dueDate) return PoolStatus.Failed;
+        return PoolStatus.Active;
+    }
+
+    function isFunded() external view returns (bool) {
+        return !completed && totalContributed >= totalDue;
+    }
+
+    function isFailed() external view returns (bool) {
+        return !completed && block.timestamp > dueDate && totalContributed < totalDue;
+    }
+
+    function canComplete() external view returns (bool) {
+        return !completed && totalContributed >= totalDue;
     }
 }

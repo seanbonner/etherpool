@@ -40,15 +40,11 @@ Frontend config is static. `npm run build` writes `frontend/dist/config.js` from
 
 ### Runtime dependencies
 
-The current static frontend loads [viem](https://viem.sh) at runtime from
-`https://esm.sh/viem@2.21.55`. This keeps the build to one `npm run build` step
-that just copies files and writes `config.js` — no bundler, no `node_modules`,
-deploys cleanly to Cloudflare Pages.
-
-TODO before a mainnet public launch: bundle/vendor viem (and any future deps)
-locally so the production frontend has no third-party CDN dependency in the
-critical path. A user-facing mainnet deployment should not depend on esm.sh
-being reachable or untampered.
+The frontend uses [viem](https://viem.sh), bundled at build time by
+[esbuild](https://esbuild.github.io) into a single self-contained
+`frontend/dist/main.js`. The deployed site has no third-party CDN dependency at
+runtime. Build deps (`viem`, `esbuild`) are devDependencies in
+`frontend/package.json` and installed by `npm install`.
 
 Build the contracts first, then build the frontend:
 

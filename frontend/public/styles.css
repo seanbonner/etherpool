@@ -85,6 +85,16 @@ h3 {
   max-width: 60ch;
 }
 
+.disclaimer {
+  background: var(--warn-bg);
+  border-left: 3px solid var(--warn-line);
+  color: var(--fg);
+  font-size: 0.9rem;
+  margin-top: 16px;
+  max-width: 70ch;
+  padding: 10px 14px;
+}
+
 p,
 li,
 dd {

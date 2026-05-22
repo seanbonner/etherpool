@@ -9,12 +9,8 @@ import {
   getAddress,
   getContract,
   decodeEventLog
-} from "https://esm.sh/viem@2.21.55";
-import {
-  mainnet,
-  sepolia,
-  holesky
-} from "https://esm.sh/viem@2.21.55/chains";
+} from "viem";
+import { mainnet, sepolia, holesky } from "viem/chains";
 
 const config = window.ETHERPOOL_CONFIG || {};
 const STATUS_LABELS = ["Active", "Funded", "Completed", "Failed"];

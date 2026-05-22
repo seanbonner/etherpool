@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import * as esbuild from "esbuild";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frontendRoot = resolve(here, "..");
@@ -33,7 +34,12 @@ const artifacts = [
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(resolve(dist, "abi"), { recursive: true });
-await cp(resolve(frontendRoot, "public"), dist, { recursive: true });
+
+// Copy static assets but skip main.js — esbuild emits a bundled version below.
+await cp(resolve(frontendRoot, "public"), dist, {
+  recursive: true,
+  filter: (src) => !src.endsWith("/main.js")
+});
 
 for (const [name, source] of artifacts) {
   const raw = await readFile(source, "utf8");
@@ -42,3 +48,14 @@ for (const [name, source] of artifacts) {
 }
 
 await writeFile(resolve(dist, "config.js"), `window.ETHERPOOL_CONFIG = ${JSON.stringify(config, null, 2)};\n`);
+
+await esbuild.build({
+  entryPoints: [resolve(frontendRoot, "public/main.js")],
+  bundle: true,
+  format: "esm",
+  target: "es2022",
+  minify: true,
+  sourcemap: false,
+  outfile: resolve(dist, "main.js"),
+  legalComments: "none"
+});

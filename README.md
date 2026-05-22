@@ -98,6 +98,20 @@ Deploy and verify the factory:
 forge script script/DeployEtherPoolFactory.s.sol --rpc-url $RPC_URL --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
+### Pool verification on Etherscan
+
+Each `createPool` call deploys a brand-new `EtherPool` contract, so each pool address is its own deployment that Etherscan tracks separately from the factory.
+
+Once any single pool is verified on Etherscan, every other pool with matching bytecode automatically picks up "Similar Match Source Code" status — the source is viewable on each pool's Etherscan page even without re-running verification. So in practice you only need to verify one pool per chain.
+
+If a specific pool isn't picking up the similar-match verification, run:
+
+```sh
+./script/verify-pool.sh 0xPoolAddressHere
+```
+
+(Pass `sepolia` as a second argument for a Sepolia pool; defaults to mainnet.)
+
 Set frontend deployment values after deployment:
 
 ```sh

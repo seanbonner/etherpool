@@ -1,6 +1,8 @@
 # EtherPool
 
-Domain: etherpool.app
+Live: [etherpool.app](https://etherpool.app)
+
+Mainnet factory: [`0x23265146B86076bD416Ab7573Bdfa09Fe3F5d301`](https://etherscan.io/address/0x23265146b86076bd416ab7573bdfa09fe3f5d301)
 
 EtherPool creates simple ETH payment pools: if the total due is reached by the due date, the recipient gets paid; otherwise senders can claim their ETH back.
 

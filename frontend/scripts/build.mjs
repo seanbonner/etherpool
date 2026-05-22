@@ -21,7 +21,7 @@ const etherscanBaseUrls = {
   17000: "https://holesky.etherscan.io"
 };
 const defaultRpcUrls = {
-  1: "https://cloudflare-eth.com",
+  1: "https://ethereum-rpc.publicnode.com",
   11155111: "https://ethereum-sepolia-rpc.publicnode.com",
   17000: "https://ethereum-holesky-rpc.publicnode.com"
 };

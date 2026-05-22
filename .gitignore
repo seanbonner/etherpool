@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+cache/
+out/
+broadcast/
+frontend/dist/
+frontend/public/config.js
+node_modules/

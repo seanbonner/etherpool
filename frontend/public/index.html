@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EtherPool</title>
+    <meta
+      name="description"
+      content="EtherPool creates simple ETH payment pools for a fixed total due by a fixed due date."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p>etherpool.app</p>
+        <h1>EtherPool</h1>
+        <p>
+          One ETH address per payment pool. If the total due is reached by the due date,
+          the recipient gets paid; otherwise senders can claim their ETH back.
+        </p>
+      </header>
+
+      <section aria-labelledby="flow-title">
+        <h2 id="flow-title">Flow</h2>
+        <ol>
+          <li>Create a pool with a total due, due date, and EOA recipient.</li>
+          <li>Send ETH directly to the pool address.</li>
+          <li>Call complete when funded.</li>
+          <li>Claim failed-pool contributions or excess payments from the sending address.</li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="abi-title">
+        <h2 id="abi-title">Contract Data</h2>
+        <dl>
+          <div>
+            <dt>EtherPool ABI</dt>
+            <dd id="pool-abi-status">Loading</dd>
+          </div>
+          <div>
+            <dt>Factory ABI</dt>
+            <dd id="factory-abi-status">Loading</dd>
+          </div>
+          <div>
+            <dt>Factory Address</dt>
+            <dd id="factory-address-status">Not configured</dd>
+          </div>
+          <div>
+            <dt>Chain</dt>
+            <dd id="chain-status">Not configured</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section aria-labelledby="notice-title">
+        <h2 id="notice-title">Important</h2>
+        <p>
+          Do not send from exchanges or custodial wallets. Claims are keyed to the
+          sending address. V1 recipients must be EOAs, not contracts, Safes,
+          multisigs, or smart wallets. EtherPool has no admin controls, dev fee, or sweep.
+        </p>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

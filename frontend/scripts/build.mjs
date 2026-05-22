@@ -9,11 +9,6 @@ const projectRoot = resolve(frontendRoot, "..");
 const dist = resolve(frontendRoot, "dist");
 const vendoredAbiDir = resolve(frontendRoot, "abi");
 
-console.log("[build] FRONTEND_FACTORY_ADDRESS:", process.env.FRONTEND_FACTORY_ADDRESS ? `set (${process.env.FRONTEND_FACTORY_ADDRESS.slice(0, 6)}…)` : "MISSING");
-console.log("[build] FRONTEND_CHAIN_ID:", process.env.FRONTEND_CHAIN_ID ?? "MISSING");
-console.log("[build] FRONTEND_ETHERSCAN_BASE_URL:", process.env.FRONTEND_ETHERSCAN_BASE_URL ?? "MISSING");
-console.log("[build] FRONTEND_RPC_URL:", process.env.FRONTEND_RPC_URL ?? "MISSING");
-
 const chainId = Number(process.env.FRONTEND_CHAIN_ID || process.env.CHAIN_ID || "1");
 const etherscanBaseUrls = {
   1: "https://etherscan.io",

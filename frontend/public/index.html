@@ -100,6 +100,13 @@
             Recipient must be a regular wallet (EOA). Safes, multisigs, and smart contract
             wallets are not supported and will be rejected on-chain.
           </p>
+          <p class="muted">
+            Creating a pool deploys a new contract, so it uses more gas than a normal
+            transfer. Keep a comfortable ETH buffer — your wallet reserves the maximum
+            possible gas fee up front, which can be more than the final cost. If your
+            balance sits just above the estimate, the transaction can fail with a generic
+            wallet error.
+          </p>
           <div class="form-actions">
             <button type="submit" id="create-submit">Create Pool</button>
             <span id="create-status" class="muted"></span>

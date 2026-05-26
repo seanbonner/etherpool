@@ -678,6 +678,47 @@ async function handleCreate(event) {
     }
   }
 
+  // Creating a pool deploys a fresh contract (~800k gas), so it costs far more
+  // than a normal transfer. Wallets reserve gasLimit * maxFeePerGas up front,
+  // which can sit just above a thin balance and make the wallet fail with an
+  // opaque "Failed"/internal error. Pre-check here so the user gets a clear
+  // message instead. Skip silently on RPC hiccups — the wallet still guards.
+  if (state.publicClient) {
+    try {
+      const [gas, fees, balance] = await Promise.all([
+        state.publicClient.estimateContractGas({
+          address: getAddress(config.factoryAddress),
+          abi: state.factoryAbi,
+          functionName: "createPool",
+          args: [totalDueWei, BigInt(dueDateUnix), recipient],
+          account: state.account
+        }),
+        state.publicClient.estimateFeesPerGas(),
+        state.publicClient.getBalance({ address: state.account })
+      ]);
+      // Mirror wallet behaviour: pad the gas limit and floor the max fee, since
+      // wallets keep headroom for base-fee spikes even when the base fee is tiny
+      // (the exact case that fails with a low balance and a near-zero base fee).
+      const paddedGas = (gas * 3n) / 2n;
+      const minMaxFee = 2_000_000_000n; // 2 gwei floor
+      const maxFee =
+        fees.maxFeePerGas && fees.maxFeePerGas > minMaxFee ? fees.maxFeePerGas : minMaxFee;
+      const reservation = paddedGas * maxFee;
+      if (balance < reservation) {
+        setStatus(
+          `Not enough ETH for gas. Creating a pool deploys a contract, and your wallet ` +
+            `reserves up to ~${formatEther(reservation)} ETH for gas, but this account ` +
+            `holds ${formatEther(balance)} ETH. Add a little more ETH and try again.`,
+          "error"
+        );
+        return;
+      }
+    } catch {
+      // Estimation can fail on flaky RPCs; don't block — the wallet will still
+      // surface a real revert or funds error at confirmation time.
+    }
+  }
+
   const submitBtn = el("create-submit");
   submitBtn.disabled = true;
   submitBtn.textContent = "Creating…";
@@ -744,7 +785,21 @@ async function handleCreate(event) {
     setStatus("Pool created.", "ok");
     await refreshPools();
   } catch (err) {
-    setStatus(`Could not create pool. ${describeError(err)}`, "error");
+    const detail = describeError(err);
+    const lower = detail.toLowerCase();
+    if (
+      lower.includes("insufficient funds") ||
+      lower.includes("max fee per gas") ||
+      lower.includes("upfront cost")
+    ) {
+      setStatus(
+        "Could not create pool — this account doesn't have enough ETH to cover gas. " +
+          "Creating a pool deploys a contract, so add a little more ETH and try again.",
+        "error"
+      );
+    } else {
+      setStatus(`Could not create pool. ${detail}`, "error");
+    }
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Create Pool";
